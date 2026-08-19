@@ -1,0 +1,57 @@
+{
+  "contentVersion": 1,
+  "lesson_id": 2,
+  "commands": [
+    {
+      "word": "jump",
+      "spelling": ["j", "u", "m", "p"],
+      "audio_key": "jump",
+      "spoken_phrase": "jump",
+      "ru_gloss": "прыгай",
+      "demo_strip": {
+        "size": [3, 1],
+        "obstacles": [{ "x": 1, "y": 0, "type": "water" }]
+      }
+    },
+    {
+      "word": "remove",
+      "spelling": ["r", "e", "m", "o", "v", "e"],
+      "audio_key": "remove",
+      "spoken_phrase": "remove",
+      "ru_gloss": "убери",
+      "demo_strip": {
+        "size": [3, 1],
+        "obstacles": [{ "x": 1, "y": 0, "type": "stone" }]
+      }
+    }
+  ],
+  "levels": [
+    {
+      "grid_size": [3, 3],
+      "start": { "x": 0, "y": 0, "facing": "right" },
+      "obstacles": [{ "x": 1, "y": 0, "type": "water" }],
+      "goal": { "x": 2, "y": 2, "type": "star" },
+      "required_sequence": ["jump", "turn-right", "go", "go"]
+    },
+    {
+      "grid_size": [4, 4],
+      "start": { "x": 0, "y": 0, "facing": "down" },
+      "obstacles": [
+        { "x": 0, "y": 2, "type": "stone" },
+        { "x": 2, "y": 3, "type": "water" }
+      ],
+      "goal": { "x": 3, "y": 3, "type": "trophy" },
+      "required_sequence": ["go", "remove", "go", "go", "turn-left", "go", "jump"]
+    },
+    {
+      "grid_size": [4, 4],
+      "start": { "x": 3, "y": 0, "facing": "left" },
+      "obstacles": [
+        { "x": 2, "y": 0, "type": "water" },
+        { "x": 1, "y": 1, "type": "stone" }
+      ],
+      "goal": { "x": 1, "y": 3, "type": "soccer_ball" },
+      "required_sequence": ["jump", "turn-left", "remove", "go", "go", "go"]
+    }
+  ]
+}

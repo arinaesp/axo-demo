@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>axo</title>
+  <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
+  <!-- ?v= busts the style cache when CSS-only fixes ship; keep in step with
+       the JS version marker on the splash screen -->
+  <link rel="stylesheet" href="styles.css?v=72">
+</head>
+<body>
+  <div id="app">
+    <!-- Music and voice toggles — top-right of the game column, above every
+         screen. Independent: 🎵 mutes the background track, 🗣 the TTS voice
+         (word pronunciations, letters, celebrations). -->
+    <button id="btn-voice" class="btn-mute" aria-label="Turn voice off">🗣️</button>
+    <button id="btn-mute" class="btn-mute" aria-label="Turn music off">🎵</button>
+
+    <!-- Progress dots + muted map peek (look back at cleared levels without
+         touching the current one). Back/Skip live on each screen below. -->
+    <header id="progress" class="progress" hidden>
+      <button id="btn-map-peek" class="btn-link progress-peek" hidden aria-label="Look at the map">🗺</button>
+      <div id="progress-dots" class="progress-dots"></div>
+    </header>
+
+    <!-- Splash: name lives right here (prefilled on return visits), and the
+         Play tap doubles as the audio unlock on mobile -->
+    <section id="screen-start" class="screen">
+      <!-- The mascot carries the branding alone — no wordmark image. This is a
+           flat RGBA PNG flattened from axo-new-logo.svg (kept on disk as the
+           source): that file embeds a ~1250px raster twice over, 1088 KB on
+           first paint, against 64 KB here at 256px — still 2.4-3x the ~100px
+           display size. -->
+      <div class="hero">
+        <img class="mascot-logo" src="assets/images/axo-new-logo.png" alt="Axolot">
+      </div>
+      <form id="start-form" class="start-form" autocomplete="off">
+        <input id="name-input" class="cmd-input" type="text" maxlength="20"
+               autocapitalize="words" autocorrect="off" spellcheck="false"
+               enterkeyhint="go" placeholder="Your name…" aria-label="Your first name">
+        <button id="btn-start" class="btn btn-big" type="submit">▶&nbsp; Play</button>
+      </form>
+      <!-- Prefill the remembered name NOW, inline, instead of a beat later
+           once the modules have loaded. `codequest.lastName` is a device-level
+           echo of the saved name, written by setPlayerName — same
+           raw-localStorage pattern as the mute flags. main.js still overwrites
+           this with the stored value; for a returning kid they match, so
+           nothing visibly changes. -->
+      <script>
+        try {
+          var lastName = localStorage.getItem('codequest.lastName');
+          if (lastName) document.getElementById('name-input').value = lastName;
+        } catch (e) { /* private mode / storage disabled — placeholder shows */ }
+      </script>
+      <!-- Static so it paints with the HTML instead of popping in after the
+           modules load. KEEP IN STEP WITH js/version.js on every bump — main.js
+           overwrites this only if the two disagree, which is exactly the
+           stale-cached-JS signal the old JS-painted marker existed for. -->
+      <p id="version" class="version" style="display:none"></p>
+    </section>
+
+    <!-- One-time animal choice: this sprite is the player in every lesson.
+         data-unlock animals start locked and are earned by finishing that
+         lesson (main.js paints the lock state from saved unlocks). -->
+    <section id="screen-animal" class="screen" hidden>
+      <h1>Pick your friend!</h1>
+      <div class="animal-row">
+        <button class="animal-btn" data-animal="🐻" aria-label="Bear"><span class="animal-emoji">🐻</span></button>
+        <button class="animal-btn" data-animal="🐹" aria-label="Hamster"><span class="animal-emoji">🐹</span></button>
+        <button class="animal-btn" data-animal="🐰" aria-label="Rabbit"><span class="animal-emoji">🐰</span></button>
+        <button class="animal-btn" data-animal="🐱" data-unlock="3" aria-label="Cat"><span class="animal-emoji">🐱</span></button>
+        <button class="animal-btn" data-animal="🐲" data-unlock="4" aria-label="Dragon"><span class="animal-emoji">🐲</span></button>
+        <button class="animal-btn" data-animal="🦁" data-unlock="5" aria-label="Lion"><span class="animal-emoji">🦁</span></button>
+        <button class="animal-btn" data-animal="🐼" data-unlock="6" aria-label="Panda"><span class="animal-emoji">🐼</span></button>
+        <button class="animal-btn" data-animal="🐯" data-unlock="7" aria-label="Tiger"><span class="animal-emoji">🐯</span></button>
+        <button class="animal-btn" data-animal="🦄" data-unlock="8" aria-label="Unicorn"><span class="animal-emoji">🦄</span></button>
+        <button class="animal-btn" data-animal="🐸" data-unlock="9" aria-label="Frog"><span class="animal-emoji">🐸</span></button>
+        <button class="animal-btn" data-animal="🐵" data-unlock="10" aria-label="Monkey"><span class="animal-emoji">🐵</span></button>
+      </div>
+    </section>
+
+    <!-- Welcome + world map: greeting shows once after animal choice; the
+         map is reachable again from any complete screen. A fixed 2×2 grid
+         of four floating island zones (zone-design.png), each with its own
+         serpentine road of 10 dots — cleared (✓) and current (pulsing glow)
+         nodes are tappable and jump into that level's first Learn card;
+         upcoming dots and locked zones (big brass 🔒) are inert.
+         Progression into NEW levels stays linear — the map only revisits.
+         Banner + button are filled by main.js per progress. -->
+    <section id="screen-map" class="screen" hidden>
+      <div id="map-greeting" class="map-greeting" hidden>
+        <div id="welcome-animal" class="hero" aria-hidden="true">🐻</div>
+        <h1 id="welcome-title">Welcome!</h1>
+      </div>
+      <div id="island-map" class="world" aria-label="Your journey"></div>
+      <p id="map-banner" class="map-banner" hidden></p>
+      <button id="btn-map-go" class="btn btn-big">Let's go! ▶</button>
+      <!-- Welcome mode only: back to re-pick the animal -->
+      <button id="btn-map-back" class="btn-link" hidden>⬅ Back</button>
+    </section>
+
+    <!-- Learn phase: word + audio + letter-by-letter spelling + demo strip -->
+    <section id="screen-learn" class="screen" hidden>
+      <div class="word-card">
+        <button id="btn-say-word" class="btn-icon" aria-label="Say the word">🔊</button>
+        <div id="learn-word" class="learn-word"></div>
+        <!-- Quiet glyph anchor for cards that carry one (⬆ on go-up) -->
+        <span id="learn-word-hint" class="word-hint" hidden></span>
+        <!-- 🌍 language control (was the RU gloss toggle — id kept, CSS and
+             wiring key off it). main.js paints "🌍 <active label>" at init
+             and opens the #lang-sheet picker on tap. -->
+        <button id="btn-gloss" class="btn-icon" aria-label="Change language">🌍</button>
+      </div>
+      <div id="gloss" class="gloss" hidden></div>
+      <!-- go(N) watch cards: stacked "go" lines squish into one go(N) chip -->
+      <div id="squish-area" class="squish-area" hidden></div>
+      <div id="letter-slots" class="letter-slots"></div>
+      <div id="letter-bank" class="letter-bank"></div>
+      <div id="demo-area" class="demo-area" hidden>
+        <div id="demo-grid" class="grid-wrap grid-demo"></div>
+        <!-- Where a collected coin lands: shown only on cards whose demo
+             has collectibles (today the "collect" card), so the kid sees
+             the coin go somewhere instead of just disappearing. -->
+        <div id="demo-pouch" class="demo-pouch" hidden aria-hidden="true">
+          <span class="demo-pouch-bag">🪙</span>
+          <span class="demo-pouch-count">0</span>
+        </div>
+        <button id="btn-replay-demo" class="btn-icon" aria-label="Replay demo">🔁</button>
+      </div>
+      <!-- Universal step actions: Back one step, Skip one step. Next appears
+           in the middle once the word is typed. -->
+      <div class="step-actions">
+        <button id="btn-learn-back" class="btn-link">⬅ Back</button>
+        <button id="btn-learn-next" class="btn btn-big" hidden>Next&nbsp;➜</button>
+        <button id="btn-learn-skip" class="btn-link">Skip ➜</button>
+      </div>
+    </section>
+
+    <!-- Play phase: type commands (real keyboard), run the sequence, guide the
+         animal to the goal. Split view like a code editor: grid left, the typed
+         program as numbered lines right; the executing line highlights in sync. -->
+    <section id="screen-play" class="screen" hidden>
+      <div class="play-split">
+        <div class="grid-side">
+          <!-- Lesson coin tally on its own row above the grid — outside
+               #play-grid (wiped on every rebuild) and clear of the tiles.
+               Hidden in lessons without coins. -->
+          <div id="coin-counter" class="coin-counter" hidden><span id="coin-part">🪙 <span id="coin-count">0</span></span><span id="gem-part" hidden> &nbsp;💎 <span id="gem-count">0</span></span><span id="key-part" hidden> &nbsp;🔑 <span id="key-count">0</span></span></div>
+          <div id="play-grid" class="grid-wrap grid-level"></div>
+        </div>
+        <ol id="sequence" class="code-lines" aria-label="Your program"></ol>
+      </div>
+      <form id="cmd-form" class="cmd-form" autocomplete="off">
+        <input id="cmd-input" class="cmd-input" type="text"
+               autocapitalize="none" autocorrect="off" spellcheck="false"
+               enterkeyhint="go" placeholder="type a word…" aria-label="Type a command">
+        <button id="btn-add" class="btn btn-add" type="submit" aria-label="Add command">➕</button>
+      </form>
+      <div id="word-hints" class="word-hints"></div>
+      <div class="play-actions">
+        <button id="btn-play-back" class="btn-link">⬅ Back</button>
+        <button id="btn-clear" class="btn btn-secondary" aria-label="Clear sequence">🗑</button>
+        <button id="btn-run" class="btn btn-big">▶&nbsp; Go!</button>
+        <button id="btn-play-skip" class="btn-link">Skip ➜</button>
+      </div>
+    </section>
+
+    <!-- Shown after every level and at lesson end. The time is stated
+         neutrally; the "New best" badge only appears on a new best — a slower
+         run is never called out. -->
+    <section id="screen-complete" class="screen" hidden>
+      <div class="hero" aria-hidden="true">🎉</div>
+      <h1 id="complete-title">Level complete!</h1>
+      <!-- Stars rate command efficiency (never time — no pressure on slow
+           readers). Completing always earns at least one star. -->
+      <div id="complete-stars" class="stars" hidden></div>
+      <p id="complete-time" class="time-badge" hidden></p>
+      <p id="complete-stats" class="stats-badge" hidden></p>
+      <p id="complete-best" class="best-badge" hidden>🌟 New best time!</p>
+      <p class="subtitle">Great job, explorer!</p>
+      <div class="step-actions">
+        <!-- Back replays the level just finished; hidden on lesson-complete -->
+        <button id="btn-complete-back" class="btn-link" hidden>⬅ Back</button>
+        <button id="btn-again" class="btn btn-big">Next lesson ▶</button>
+      </div>
+      <div class="complete-actions">
+        <button id="btn-leaderboard" class="btn btn-secondary">🏆 Leaderboard</button>
+        <button id="btn-map" class="btn btn-secondary">🗺 Map</button>
+      </div>
+    </section>
+
+    <!-- Reward chest after finishing all of a lesson's levels: tap the
+         bouncing chest to reveal the newly unlocked animal. -->
+    <section id="screen-reward" class="screen" hidden>
+      <h1>You found a chest!</h1>
+      <button id="reward-chest" class="reward-chest" aria-label="Open the chest">🎁</button>
+      <p id="reward-hint" class="subtitle">Tap to open!</p>
+      <div id="reward-reveal" class="reward-reveal" hidden>
+        <div id="reward-animal-emoji" class="hero" aria-hidden="true"></div>
+        <p id="reward-animal" class="reward-animal"></p>
+        <button id="btn-reward-continue" class="btn btn-big">Continue ▶</button>
+      </div>
+    </section>
+
+    <!-- Zone-completion ceremony: full-screen badge reveal after the LAST
+         lesson of a zone (10/20/30/40), then the next zone's unlock teaser —
+         or, after the final zone, an all-friends parade. Intercepts the Next
+         tap on the lesson-complete screen; idempotent like the reward chest,
+         so a replay never re-runs it. Copy/animations filled by main.js. -->
+    <section id="screen-badge" class="screen" hidden>
+      <div class="badge-reveal">
+        <div id="badge-emoji" class="badge-emoji" aria-hidden="true"></div>
+        <h1 id="badge-title" class="badge-title"></h1>
+        <p id="badge-subtitle" class="badge-subtitle"></p>
+      </div>
+      <div id="badge-teaser" class="badge-teaser" hidden>
+        <!-- A replica of the next zone's bar: its 🔒 shatters and the name
+             wakes to full color (the world map shows the island unlocked
+             from now on). Then the two-way choice: replay or move on. -->
+        <div id="badge-teaser-bar" class="badge-teaser-bar"></div>
+        <p id="badge-teaser-text" class="badge-teaser-text"></p>
+        <div class="badge-choice badge-continue">
+          <button id="btn-badge-replay" class="btn btn-secondary">🔄 Play Again</button>
+          <button id="btn-badge-map" class="btn btn-big">🗺 Move to Next Zone</button>
+        </div>
+      </div>
+      <div id="badge-finale" class="badge-finale" hidden>
+        <div id="badge-parade" class="badge-parade" aria-hidden="true"></div>
+        <p class="badge-teaser-text">You've explored every zone!</p>
+        <button id="btn-badge-again" class="btn btn-big badge-continue">Play again 🔁</button>
+      </div>
+    </section>
+
+    <!-- Best times for this device only — scoped to the lesson just played -->
+    <section id="screen-leaderboard" class="screen" hidden>
+      <h1>🏆 Best times</h1>
+      <p id="lb-lesson" class="subtitle"></p>
+      <div id="lb-player" class="lb-player"></div>
+      <ul id="lb-list" class="lb-list" aria-label="Your best times"></ul>
+      <button id="btn-lb-back" class="btn btn-big">⬅&nbsp; Back</button>
+    </section>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <!-- Language picker: opened by the 🌍 button on Learn cards. Rows are
+         built by main.js from i18n.SUPPORTED at open time; tapping the
+         backdrop closes. β languages await native-speaker review, hence the
+         corrections invitation. -->
+    <div id="lang-sheet" class="lang-sheet" hidden>
+      <div class="lang-panel">
+        <div id="lang-list" class="lang-list"></div>
+        <p class="lang-note">β — awaiting a native speaker's check. Spot a mistake? Tell us! 💬</p>
+      </div>
+    </div>
+  </div>
+  <!-- i18n: locale tables first (each populates window.AXO_LOCALES), then the
+       core reads them. Plain synchronous scripts by design — no fetch, no
+       defer; main.js is a module (deferred), so it always runs after these. -->
+  <script src="js/locales/en.js"></script>
+  <script src="js/locales/ru.js"></script>
+  <script src="js/locales/ky.js"></script>
+  <script src="js/locales/kk.js"></script>
+  <script src="js/locales/uz.js"></script>
+  <script src="js/locales/uk.js"></script>
+  <script src="js/locales/es.js"></script>
+  <script src="js/locales/fr.js"></script>
+  <script src="js/locales/zh.js"></script>
+  <script src="js/locales/de.js"></script>
+  <script src="js/locales/it.js"></script>
+  <script src="js/i18n.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{
+  "contentVersion": 1,
+  "lesson_id": 1,
+  "commands": [
+    {
+      "word": "go",
+      "spelling": ["g", "o"],
+      "audio_key": "go_forward",
+      "spoken_phrase": "go",
+      "ru_gloss": "иди",
+      "demo_strip": { "size": [2, 1] }
+    },
+    {
+      "word": "turn-left",
+      "spelling": ["t", "u", "r", "n", "-", "l", "e", "f", "t"],
+      "audio_key": "turn_left",
+      "spoken_phrase": "turn left",
+      "ru_gloss": "поверни налево",
+      "demo_strip": { "size": [1, 1] }
+    },
+    {
+      "word": "turn-right",
+      "spelling": ["t", "u", "r", "n", "-", "r", "i", "g", "h", "t"],
+      "audio_key": "turn_right",
+      "spoken_phrase": "turn right",
+      "ru_gloss": "поверни направо",
+      "demo_strip": { "size": [1, 1] }
+    }
+  ],
+  "levels": [
+    {
+      "grid_size": [3, 3],
+      "start": { "x": 0, "y": 0, "facing": "right" },
+      "goal": { "x": 2, "y": 0, "type": "gift_box" },
+      "required_sequence": ["go", "go"]
+    },
+    {
+      "grid_size": [4, 4],
+      "start": { "x": 0, "y": 0, "facing": "right" },
+      "goal": { "x": 3, "y": 3, "type": "treasure_chest" },
+      "required_sequence": ["go", "go", "go", "turn-right", "go", "go", "go"]
+    }
+  ]
+}

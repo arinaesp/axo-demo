@@ -1,0 +1,1449 @@
+:root {
+  --bg: #fdf6ec;
+  --card: #ffffff;
+  --ink: #3d3450;
+  --accent: #ff8a3d;
+  --accent-dark: #e8702a;
+  --green: #4cc27e;
+  --tile: #e8f4e4;
+  --tile-line: #cfe6c8;
+  --radius: 18px;
+  --shadow: 0 4px 0 rgba(61, 52, 80, 0.15);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  /* Plain system sans: the same letterforms kids see on their phone/PC
+     keyboard — letter recognition over playful styling. The tail of the
+     stack backs the i18n gloss captions: system-ui/Segoe UI/Roboto already
+     carry extended Cyrillic (ң ө ү ә ғ қ ұ і ї for ky/kk/uz/uk), and the
+     named CJK families keep zh captions (走 跳 转) on a matched sans instead
+     of whatever per-glyph default the browser scrapes up. */
+  font-family: system-ui, 'Segoe UI', Roboto, Arial,
+    'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  user-select: none;
+}
+
+#app {
+  position: relative; /* anchors the corner music toggle to this column */
+  max-width: 430px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 12px 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- progress dots + lesson skip ---------- */
+.progress {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+.progress-dots {
+  display: flex;
+  gap: 8px;
+}
+.progress .btn-link {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.progress-peek { left: 0; font-size: 20px; }
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ded5c8;
+  transition: background .3s, transform .3s;
+}
+.dot-done { background: var(--green); }
+.dot-now { background: var(--accent); transform: scale(1.25); }
+
+/* ---------- screens ---------- */
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+.screen[hidden] { display: none; }
+
+.hero { font-size: 84px; line-height: 1; }
+h1 { margin: 0; font-size: 34px; font-weight: 600; }
+
+/* Start screen branding. The SVG's viewBox is cropped to the artwork, so this
+   width is the VISIBLE width — no hidden padding. The mascot carries the
+   branding alone (no wordmark), so it's sized up from the original 84px-emoji
+   footprint for its details to read, and the margin-top nudges it lower to
+   redistribute the space the wordmark used to fill. The screen's default 16px
+   gap and vertical centering do the rest. The art is slightly wider than tall
+   (623:577), so height follows from the width — max-width keeps it inside the
+   column if the clamp is ever raised past a narrow viewport. */
+/* Pure-delight mascot motion: a quick bounce-in on load, then a slow,
+   subtle idle bob — deliberately gentle so it doesn't distract a kid
+   who's typing their name right below it. */
+.mascot-logo {
+  width: clamp(84px, 26vw, 108px);
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 24px;
+  animation:
+    mascot-in .65s cubic-bezier(.34, 1.56, .64, 1),
+    mascot-bob 3s ease-in-out .65s infinite;
+}
+@keyframes mascot-in {
+  0% { transform: scale(0.7); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes mascot-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.subtitle { margin: 0; opacity: 0.65; font-size: 17px; }
+
+/* ---------- buttons ---------- */
+.btn {
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px 30px;
+  box-shadow: 0 5px 0 var(--accent-dark);
+  cursor: pointer;
+  transition: transform .1s;
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--accent-dark); }
+.btn:disabled { opacity: 0.5; }
+.btn-big { min-width: 160px; min-height: 60px; }
+.btn-secondary {
+  background: #b9aecb;
+  box-shadow: 0 5px 0 #978aae;
+  min-height: 60px;
+}
+.btn-icon {
+  font-size: 26px;
+  background: var(--card);
+  border: none;
+  border-radius: 14px;
+  padding: 8px 12px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.btn-icon:active { transform: translateY(2px); }
+/* 🌍 language control (was the RU gloss toggle — one button now covers every
+   language, so the old "2-3 pills side by side" plan is retired). Text label
+   ("🌍 RU"), not a bare emoji — the shared .btn-icon 26px sizing would blow
+   it up, so keep the compact brand pill. */
+#btn-gloss {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #693B37;
+  background: var(--card);
+  border: 2px solid rgba(105, 59, 55, 0.35);
+  border-radius: 999px;
+  padding: 0 10px; /* "🌍 中" and "🌍 RU" both breathe inside the pill */
+  min-width: 44px;  /* keep the ~44x44px mobile tap target despite the small label */
+  min-height: 44px;
+  white-space: nowrap;
+}
+/* Music toggle — top-right of the game column (not the browser window, so it
+   stays next to the content on wide screens), deliberately quiet (small +
+   faded) so it never competes with gameplay controls. 🎵 with a slash drawn
+   over it when muted — 🔊 is taken by the say-the-word button. */
+.btn-mute {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 9;
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px;
+  background: none;
+  border: none;
+  opacity: 0.55;
+  cursor: pointer;
+}
+.btn-mute:active { opacity: 1; }
+/* Voice toggle — left of the music note, same quiet treatment and the same
+   slash-when-muted. 🗣 silences the TTS voice only; music is 🎵's job. */
+#btn-voice { right: 44px; }
+.btn-mute.muted { opacity: 0.4; }
+.btn-mute.muted::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 50%;
+  border-top: 2.5px solid var(--ink);
+  border-radius: 2px;
+  transform: rotate(-45deg);
+}
+/* Quiet text button for optional actions (skips) — deliberately low-key so
+   it never competes with the main controls or reads as a fail exit. */
+.btn-link {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  opacity: 0.55;
+  background: none;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.btn-link:active { opacity: 0.85; }
+.btn-link[hidden] { display: none; }
+
+/* ---------- learn phase ---------- */
+.word-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+.learn-word { font-size: 36px; font-weight: 600; letter-spacing: 1px; }
+.gloss { font-size: 18px; opacity: 0.7; }
+
+.letter-slots {
+  /* One connected row for any word length — slots shrink instead of wrapping,
+     so the last letter of long words like turn-right never drops to its own line. */
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+}
+.slot {
+  flex: 0 1 38px;
+  min-width: 0;
+  height: 46px;
+  border-radius: 10px;
+  border: 2.5px dashed #cfc4b4;
+  background: var(--card);
+  font-size: clamp(15px, 6vw, 26px);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.slot-hyphen { flex-basis: 22px; border-style: solid; border-color: transparent; background: transparent; }
+.slot.filled {
+  border: 2.5px solid var(--green);
+  background: #eefaf2;
+  animation: pop .25s ease;
+}
+
+.letter-bank {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 340px;
+}
+.letter-btn {
+  font-family: inherit;
+  width: 52px;
+  height: 56px;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  background: #ffe9a8;
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #e6c86e;
+  cursor: pointer;
+}
+.letter-btn:active { transform: translateY(2px); }
+.letter-btn:disabled { opacity: 0.25; box-shadow: none; }
+.letter-btn.wiggle { animation: wiggle .4s ease; }
+
+.demo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.demo-area[hidden] { display: none; }
+
+/* Learn-phase pouch: the coin's destination on a collect card. Deliberately
+   built to look like the play phase's .coin-counter (same pill, same pop) —
+   the kid should recognise the header counter in a level as "the thing my
+   coin flew into on the card". */
+.demo-pouch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--card);
+  border-radius: 999px;
+  padding: 6px 12px;
+  box-shadow: var(--shadow);
+}
+.demo-pouch[hidden] { display: none; }
+.demo-pouch.pop { animation: pop .3s ease; }
+.demo-pouch-bag { font-size: 20px; }
+.demo-pouch-count { min-width: 12px; text-align: center; }
+
+/* go(N) squish show: stacked "go" chips collapse into one go(N) chip.
+   Movement is inline transforms set by learn.js; this only shapes chips
+   and gives them the transition to glide with. */
+.squish-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 46px;
+}
+.squish-area[hidden] { display: none; }
+.squish-chip {
+  font-size: 22px;
+  font-weight: 600;
+  background: var(--card);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 6px 20px;
+  box-shadow: var(--shadow);
+  transition: transform .45s ease, opacity .45s ease;
+}
+.squish-chip.squish-result {
+  border-color: var(--green);
+  background: #eefaf2;
+  animation: pop .35s ease;
+}
+/* repeat(N) loop show: the chip being executed lights up, and the lap
+   badge counts ↻ 1/3 → 2/3 → 3/3 with a pop on each new lap. */
+.squish-chip.chip-active { border-color: var(--accent); background: #fff3e6; }
+.squish-chip.loop-lap {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 4px 0 var(--accent-dark);
+  font-size: 18px;
+}
+.squish-chip.loop-lap.pop-badge { animation: pop .3s ease; }
+/* end card: the end chip waits dimmed until the laps finish, then lights
+   green — the stop cue, not an action. */
+.squish-chip.chip-end-dim { opacity: 0.35; }
+
+/* Recap card: the full Play-phase program structure in miniature —
+   repeat(3) line, indented block with gutter, end line closing it. */
+.mini-program {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 170px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 10px 16px;
+  box-shadow: var(--shadow);
+  text-align: left;
+  font-size: 17px;
+  font-weight: 500;
+}
+.mini-line { padding: 4px 10px; border-radius: 6px; transition: background .15s; }
+.mini-line.mini-inside {
+  margin-left: 14px;
+  border-left: 3px solid #e3ddf3;
+  padding-left: 10px;
+  border-radius: 0 6px 6px 0;
+}
+.mini-line.mini-active { background: var(--accent); color: #fff; }
+.mini-line.mini-stop { background: var(--green); color: #fff; animation: pop .35s ease; }
+
+/* ---------- grid ---------- */
+.grid-wrap { width: 100%; display: flex; justify-content: center; }
+.grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+  width: min(88vw, calc(72px * var(--cols)));
+  aspect-ratio: var(--cols) / var(--rows);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.grid-demo .grid { width: calc(64px * var(--cols)); }
+.tile {
+  background: var(--tile);
+  border: 1.5px solid var(--tile-line);
+}
+.tile:nth-child(even) { background: #f2f9ee; }
+/* The prize tile: warm orange from the accent family, so the end point is
+   spottable at a glance. After the nth-child rule so it wins on even tiles. */
+.tile.tile-goal { background: #ffe3bf; border-color: #f6c489; }
+
+.sprite {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(24px, 9vw, 42px);
+  transition: left .45s ease, top .45s ease;
+  pointer-events: none;
+}
+.player-emoji { position: relative; z-index: 2; }
+.arrow-orbit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.arrow {
+  transform: translateX(135%);
+  font-size: 0.45em;
+  color: var(--accent-dark);
+}
+.sprite.player { z-index: 3; }
+.sprite.obstacle { z-index: 1; }
+/* Coins and gems sit on a tile (walkable) until "collect" picks them up —
+   slightly smaller than the animal so the player always reads as the actor. */
+.sprite.item { z-index: 1; font-size: clamp(18px, 6.5vw, 30px); }
+.item-emoji { display: inline-block; transform: translate(18%, 22%); }
+/* Switch plate: floor-level, below crates; lights up when pressed. */
+.sprite.switch { z-index: 0; font-size: clamp(14px, 5vw, 22px); }
+.sprite.switch.pressed { filter: drop-shadow(0 0 8px #ffd24d); }
+/* Crate pushed into shallow water: it FLOATS. The water sprite stays on the
+   tile underneath, so the tile still reads as water — the crate is shrunk so
+   the waves peek out around its edges, and bobs on the current. Blocks "go",
+   crossed only by "jump". */
+.sprite.obstacle-crate_float {
+  transform: scale(0.68);
+  animation: crate-bob 2.2s ease-in-out infinite;
+}
+@keyframes crate-bob {
+  0%, 100% { transform: scale(0.68) translateY(0); }
+  50%      { transform: scale(0.68) translateY(6%); }
+}
+/* Sandy frame behind the gate so the door reads as a solid blocker against
+   the green tiles (same contrast idea as the stone's dark backing). */
+.sprite.obstacle-gate::before {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  z-index: -1;
+  border-radius: 16%;
+  background: #d9c49a;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.15);
+}
+.sprite.item.collected { animation: collect-up .5s ease forwards; }
+.sprite.item.collected::after {
+  content: '✨';
+  position: absolute;
+  font-size: 0.8em;
+  animation: pop .4s ease;
+}
+/* Play-phase pickup burst, dropped on the tile the coin was standing on.
+   Above the item/obstacle layer, below the player (z3) so the animal is
+   never hidden by its own loot. Both elements self-remove from JS. */
+.sprite.collect-burst {
+  z-index: 2;
+  animation: collect-burst .55s ease-out forwards;
+}
+.sprite.collect-plus {
+  z-index: 2;
+  font-size: clamp(14px, 5vw, 22px);
+  font-weight: 700;
+  color: #fff;
+  -webkit-text-stroke: 3px #693b37;
+  paint-order: stroke fill; /* stroke behind the glyph, not over it */
+  animation: collect-plus .8s ease-out forwards;
+}
+
+/* Fog: an opaque grey backing block (same trick as the stone's dark one)
+   fully covers whatever sprite is on the tile beneath — that's the hiding
+   mechanism, the covered sprites are untouched. Above obstacles/items (z2)
+   but below the player (z3), so the animal stepping onto fog stays visible
+   while it lifts. */
+.sprite.fog {
+  z-index: 2;
+  font-size: clamp(20px, 7.5vw, 34px);
+}
+.sprite.fog::before {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  z-index: -1;
+  border-radius: 18%;
+  background: #cdc7d8;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+}
+.sprite.fog.fog-lift { animation: fog-lift .45s ease forwards; }
+@keyframes fog-lift {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.5) translateY(-30%); opacity: 0; }
+}
+
+/* Bridge built over water: floor-level and permanent — walkable decoration,
+   like a sunk crate. Pops in as the build lands. */
+.sprite.bridge {
+  z-index: 0;
+  animation: pop .45s ease;
+}
+
+/* Dark backing block behind the stone emoji — high contrast against the
+   green tiles, so the remove's crumble is an obvious before/after. The block
+   is part of the sprite, so it crumbles along with the emoji. */
+.sprite.obstacle-stone::before {
+  content: '';
+  position: absolute;
+  inset: 10%;
+  z-index: -1;
+  border-radius: 22%;
+  background: #4e4759;
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.3);
+}
+.sprite.bump { animation: bump .4s ease; }
+.sprite.party { animation: party .6s ease infinite; }
+.sprite.jump .player-emoji { animation: jump-arc .5s ease; }
+.sprite.crumble { animation: crumble .45s ease forwards; }
+.sprite.splash-hit { animation: splash-hit .5s ease; }
+
+/* ---------- animal choice ---------- */
+.animal-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  max-width: 340px;
+}
+.animal-btn {
+  font-size: 54px;
+  line-height: 1;
+  background: var(--card);
+  border: 3px solid transparent;
+  border-radius: 22px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.animal-btn:active { transform: translateY(2px); }
+.animal-btn.animal-current { border-color: var(--accent); }
+.animal-btn.wiggle { animation: wiggle .4s ease; }
+/* Locked friend: the whole button goes grey and the padlock sits centered
+   ON the dimmed animal, inside the button — unmistakably attached to that
+   animal, never floating in the gap between buttons. The button background
+   dims too, so the state reads even on webviews that ignore emoji filters.
+   Unlocked animals get none of this: full color, no badge. */
+.animal-btn { position: relative; }
+.animal-btn.animal-locked {
+  background: #ece6da;
+  box-shadow: 0 4px 0 rgba(61, 52, 80, 0.08);
+}
+.animal-btn.animal-locked .animal-emoji { filter: grayscale(1); opacity: 0.3; }
+.animal-btn.animal-locked::after {
+  content: '🔒';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+}
+
+/* ---------- play phase: split view, grid left / program lines right ---------- */
+/* The grid side ALONE sets this row's height; the command panel is pinned
+   to match it exactly (absolute, top+bottom anchored) and scrolls inside
+   itself — adding commands can never stretch the row or shift the grid. */
+.play-split {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+.play-split .grid-side { flex: none; width: 58%; min-width: 0; text-align: left; }
+.play-split .grid-wrap { width: 100%; }
+.play-split .grid { width: 100%; }
+
+/* Lesson coin tally: its own row just ABOVE the grid, left-aligned — never
+   overlapping tiles. Pops on each pickup; hidden entirely in lessons that
+   have no coins. */
+.coin-counter {
+  display: inline-block;
+  margin: 0 0 6px 2px;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--card);
+  border-radius: 999px;
+  padding: 4px 12px;
+  box-shadow: var(--shadow);
+}
+.coin-counter[hidden] { display: none; }
+.coin-counter.pop { animation: pop .3s ease; }
+
+/* A collected coin's flight from its tile to the counter. */
+.coin-fly {
+  position: fixed;
+  z-index: 30;
+  font-size: 24px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: transform .38s cubic-bezier(.3, .7, .5, 1);
+}
+
+/* Milestone sparkles scattering from the counter. */
+.sparkle-burst {
+  position: fixed;
+  z-index: 30;
+  font-size: 18px;
+  pointer-events: none;
+  animation: sparkle-fly .65s ease-out forwards;
+}
+@keyframes sparkle-fly {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2);
+    opacity: 0;
+  }
+}
+.code-lines {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: calc(42% - 10px);
+  margin: 0;
+  padding: 10px 8px 10px 34px;
+  overflow-y: auto;
+  text-align: left;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-size: 16px;
+  font-weight: 500;
+}
+.code-line {
+  padding: 6px 8px;
+  margin: 2px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.code-line::marker { color: #b9aecb; font-size: 14px; }
+.code-line.line-active { background: var(--accent); color: #fff; }
+.code-line.line-active::marker { color: var(--accent-dark); }
+/* go(3) renders as one line with a ×3 badge; during playback the active
+   line's badge counts down ×3 → ×2 → ×1 in step with the moves. */
+.count-badge {
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #efe9f9;
+  color: #7a6c99;
+  border-radius: 999px;
+  padding: 1px 8px;
+  vertical-align: 1px;
+}
+.line-active .count-badge { background: rgba(255, 255, 255, 0.3); color: #fff; }
+/* Lines inside a repeat…end block: indented with a gutter border, like a
+   code editor showing what's "inside" the loop. */
+.code-line.line-inside {
+  margin-left: 14px;
+  border-left: 3px solid #e3ddf3;
+  padding-left: 10px;
+  border-radius: 0 8px 8px 0;
+}
+.line-active.line-inside { border-left-color: var(--accent-dark); }
+/* Iteration badge on the repeat line during playback: 1/4 → 2/4 → … */
+.loop-badge {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 7px;
+  vertical-align: 1px;
+}
+.line-active .loop-badge { background: rgba(255, 255, 255, 0.3); }
+.code-hint {
+  list-style: none;
+  margin-left: -22px;
+  opacity: 0.5;
+  font-size: 14px;
+}
+
+.cmd-form {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 340px;
+}
+.cmd-input {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--card);
+  border: 2.5px solid #e3ddf3;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  outline: none;
+}
+.cmd-input:focus { border-color: var(--accent); }
+.cmd-input.wiggle { animation: wiggle .4s ease; border-color: #e06666; }
+.btn-add {
+  font-size: 20px;
+  padding: 12px 18px;
+  background: var(--green);
+  box-shadow: 0 5px 0 #37995f;
+}
+.word-hints {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.hint-chip {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--card);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  /* Column: English word on top, optional silent gloss caption beneath.
+     Chips without a caption render exactly as before. */
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hint-chip:active { transform: translateY(2px); }
+/* [hidden] must still hide a chip: the UA sheet's [hidden]{display:none}
+   loses to the author display:inline-flex above — missing this line is why
+   v0.90's collapsed chips all rendered expanded with the toggle stranded
+   mid-row. Same pattern as .word-hint[hidden]. */
+.hint-chip[hidden] { display: none; }
+/* Silent i18n caption under a chip's English word — quiet on purpose: the
+   English word is the teaching payload, the caption is a glance-down aid. */
+.chip-gloss {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.65;
+}
+
+/* Universal step actions: quiet Back/Skip flanking the main button. The
+   play row holds four controls, so it's tightened to fit small phones. */
+.step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.play-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.play-actions .btn-big { min-width: 120px; }
+.play-actions .btn-link,
+.step-actions .btn-link {
+  padding: 6px 6px;
+  white-space: nowrap;
+}
+
+/* ---------- start screen name form ---------- */
+.start-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 280px;
+}
+.start-form .cmd-input { width: 100%; text-align: center; }
+/* Play button, sized down from the shared .btn/.btn-big defaults so it
+   doesn't dominate the start screen next to the name input and mascot.
+   The min-width/min-height floors are relaxed so the smaller padding can
+   actually take effect; the result (~46px tall) is still a comfortable
+   kid-sized tap target. Color and shadow stay inherited from .btn. */
+#btn-start {
+  font-size: 18px;
+  padding: 12px 40px;
+  border-radius: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.version { margin: 0; font-size: 12px; opacity: 0.35; }
+
+/* ---------- welcome + island map ---------- */
+.map-greeting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.map-greeting[hidden] { display: none; }
+/* World map (since v0.77, zone-design.png direction): floating island zones
+   on the app's own cream background — the whole journey on one screen, no
+   scrolling anywhere. Minimal by design: islands, dots, a couple of
+   kelp/coral accents — no fish, no clutter. The full game lays four islands
+   out in a fixed 2×2; this demo ships one zone, so the grid is a single cell
+   and that island gets the whole box. */
+#map-greeting .hero { font-size: 52px; } /* compact so the world fits */
+.world {
+  position: relative; /* isle offsets measured from here */
+  width: 100%;
+  max-width: 400px;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 240px;
+  gap: 14px;
+  padding: 6px 2px;
+}
+/* Floating island: rounded square (fits the 2×2 grid layout cleanly), one
+   palette per zone (islands only — the play grid stays green in every zone). */
+.zone-isle {
+  position: relative;
+  z-index: 1;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+.isle-shallows { background: radial-gradient(circle at 35% 30%, #fae7b3, #f0c987); }
+/* Twilight is deep blue/purple per the written spec (the AI sample's green
+   island was overruled by the founder's text). */
+.isle-twilight { background: radial-gradient(circle at 35% 30%, #7a6fc4, #45418e); }
+.isle-abyss    { background: radial-gradient(circle at 35% 30%, #47488c, #23244d); }
+/* Lost Atlantis — the high-value final destination: rich deep teal/cyan with
+   a subtle golden glow ring, not the old ancient-stone grey. */
+.isle-atlantis {
+  background: radial-gradient(circle at 35% 30%, #1c7a80, #0b3a53);
+  box-shadow: var(--shadow), 0 0 0 2px rgba(255, 215, 106, 0.6),
+    0 0 16px rgba(255, 215, 106, 0.45);
+}
+.isle-shut { filter: saturate(0.8); }
+/* Minimal decor via pseudo-elements — kelp + coral only, zero JS. */
+.zone-isle::before,
+.zone-isle::after {
+  position: absolute;
+  font-size: 15px;
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 0;
+}
+.isle-shallows::before { content: '🌿'; left: 13%; bottom: 16%; }
+.isle-shallows::after { content: '🌿'; right: 15%; top: 32%; font-size: 12px; }
+.isle-twilight::before { content: '🪸'; left: 10%; bottom: 12%; }
+.isle-twilight::after { content: '🪸'; right: 11%; bottom: 20%; font-size: 12px; }
+.isle-abyss::before { content: '🌿'; left: 13%; bottom: 12%; filter: saturate(0.5) brightness(0.75); }
+.isle-atlantis::before { content: '🪸'; right: 13%; bottom: 13%; }
+/* Name pill (top-left) + badge chip (top-right), floating over the island
+   edge like the design's labels. */
+.isle-name {
+  position: absolute;
+  top: -9px;
+  left: 4px;
+  z-index: 3;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+.isle-badge {
+  position: absolute;
+  top: -9px;
+  right: 0;
+  z-index: 3;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+  opacity: 0.75; /* not yet earned */
+}
+.isle-badge.badge-earned {
+  opacity: 1;
+  box-shadow: var(--shadow), 0 0 8px rgba(255, 205, 92, 0.85); /* earned glow */
+}
+/* The serpentine road box: nodes sit at ISLE_NODE_POS percentages inside
+   it; the dotted road SVG (prepended) runs through the same points. */
+.isle-road {
+  position: absolute;
+  inset: 20px 12px 10px 12px;
+  z-index: 1;
+}
+.isle-road-path {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.isle-road-path path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.5 7;
+}
+/* Lesson node: a 44px hit area (kid-finger minimum) around a 30px visual
+   dot. done/now are real <button>s; upcoming dots are clean, bright — and
+   inert divs, per the core rule that locked markers never respond. */
+.isle-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+}
+button.isle-node {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.12s ease;
+}
+button.isle-node:hover { transform: translate(-50%, -50%) translateY(-2px); }
+button.isle-node:active { transform: translate(-50%, -50%) scale(0.9); }
+.isle-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--ink);
+  box-shadow: 0 2px 0 rgba(61, 52, 80, 0.18);
+}
+.node-done .isle-dot { background: var(--green); color: #fff; }
+/* Tiny star-confetti accent near completed nodes (design detail; fish were
+   dropped for minimalism) */
+.node-done::after {
+  content: '✨';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  font-size: 10px;
+}
+.node-now .isle-dot {
+  background: #fff;
+  color: var(--accent-dark);
+  animation: node-glow 1.4s ease infinite; /* the pulsing white current dot */
+}
+.node-todo .isle-dot { opacity: 0.7; }
+.isle-shut .isle-dot { opacity: 0.6; background: rgba(255, 255, 255, 0.55); }
+@keyframes node-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.95), 0 0 10px 2px rgba(255, 255, 255, 0.9);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(255, 255, 255, 0), 0 0 16px 5px rgba(255, 255, 255, 0.55);
+  }
+}
+/* The big friendly lock over an unreached zone: warm filters turn the 🔒
+   emoji brass; a soft golden glow and a slow bob keep it inviting, never
+   forbidding. Covers the road visually, blocks nothing itself (the dots
+   beneath are already inert). */
+.isle-lock {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 54px;
+  pointer-events: none;
+  filter: sepia(1) saturate(2.6) hue-rotate(-12deg) brightness(1.05)
+    drop-shadow(0 0 10px rgba(255, 206, 84, 0.8));
+  animation: lock-bob 2.6s ease infinite;
+}
+@keyframes lock-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+/* Friendly banner above the Go button ("Unlock Zone 2 by finishing
+   Zone 1!") — filled and shown/hidden by renderMap. */
+.map-banner {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 8px 18px;
+  box-shadow: var(--shadow);
+}
+.map-banner[hidden] { display: none; }
+/* The one big glowing orange call to action at the bottom of the map. */
+#btn-map-go {
+  box-shadow: 0 5px 0 var(--accent-dark), 0 0 18px rgba(255, 138, 61, 0.55);
+}
+
+/* ---------- zone dividers (island map) ---------- */
+/* Zone palettes as custom properties — dividers (and the badge ceremony)
+   only; the grid tiles stay green in every zone. Kept next to the divider
+   styles rather than the top :root so the whole zone look lives in one
+   place. */
+:root {
+  --zone-shallows-a: #f8dc9b; /* sand */
+  --zone-shallows-b: #a5e3ee; /* light cyan water */
+  --zone-shallows-ink: #693b37; /* brand brown reads well on the warm bar */
+  --zone-twilight-a: #2e7f8f; /* deep teal */
+  --zone-twilight-b: #303a75; /* deep blue, purple lean */
+  --zone-twilight-ink: #eaf6ff;
+  --zone-twilight-glow: #7fe3ff; /* bioluminescence */
+  --zone-abyss-a: #1a1626; /* near-black */
+  --zone-abyss-b: #0d0b15;
+  --zone-abyss-ink: #f2e9ff;
+  --zone-abyss-glow: #45d8ec; /* electric blue edge (magenta partner below) */
+  --zone-abyss-glow2: #e84fae;
+  --zone-atlantis-a: #0f4041; /* sunken-city sea green */
+  --zone-atlantis-b: #14406b;
+  --zone-atlantis-ink: #f6ecd0;
+  --zone-atlantis-glow: #ffd76a; /* lost gold */
+}
+/* The zone bar: since the v0.77 world-map redesign it appears ONLY as the
+   ceremony's unlock-teaser replica (the map itself renders islands, not
+   bars). Always an inert div — decorative, never tappable, never a gate. */
+.zone-divider {
+  z-index: 1; /* above the dotted path, same layer as the stops */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+}
+.zone-emoji { font-size: 17px; letter-spacing: 0; }
+.zone-lock { font-size: 13px; letter-spacing: 0; }
+.zone-shallows {
+  background: linear-gradient(90deg, var(--zone-shallows-a), var(--zone-shallows-b));
+  color: var(--zone-shallows-ink);
+}
+.zone-twilight {
+  background: linear-gradient(90deg, var(--zone-twilight-a), var(--zone-twilight-b));
+  color: var(--zone-twilight-ink);
+}
+.zone-abyss {
+  background: linear-gradient(90deg, var(--zone-abyss-a), var(--zone-abyss-b));
+  color: var(--zone-abyss-ink);
+  box-shadow: var(--shadow), 0 0 9px var(--zone-abyss-glow); /* glowing edge */
+}
+.zone-atlantis {
+  background: linear-gradient(90deg, var(--zone-atlantis-a), var(--zone-atlantis-b));
+  color: var(--zone-atlantis-ink);
+  box-shadow: var(--shadow), 0 0 9px var(--zone-atlantis-glow);
+}
+/* Locked: dimmed + desaturated, 🔒 appended — visible so the kid sees what's
+   ahead ("something to look forward to"), but clearly not open yet. */
+.zone-divider.zone-locked { opacity: 0.55; filter: saturate(0.35); }
+/* Active: full color with a gentle pulse on the zone emoji; The Twilight
+   adds its bioluminescent shimmer (the spec's "occasional glow"). */
+.zone-divider.zone-active .zone-emoji {
+  animation: zone-emoji-pulse 1.6s ease infinite;
+}
+.zone-twilight.zone-active { animation: zone-biolum 3.2s ease infinite; }
+/* Completed: the badge replaces the zone identity (⚡ SPARK, built in JS);
+   a warm glow gives it the earned feel. */
+.zone-divider.zone-completed {
+  box-shadow: var(--shadow), 0 0 10px rgba(255, 205, 92, 0.75);
+}
+@keyframes zone-emoji-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.22); }
+}
+@keyframes zone-biolum {
+  0%, 100% { box-shadow: var(--shadow), 0 0 4px rgba(127, 227, 255, 0.25); }
+  50% { box-shadow: var(--shadow), 0 0 13px rgba(127, 227, 255, 0.8); }
+}
+
+/* ---------- zone badge ceremony ---------- */
+/* The screen section itself is painted with the zone's theme (spec: warm
+   gold / deep blue / dark purple; Atlantis reuses its sunken-gold palette) —
+   main.js swaps the badge-theme-* class per ceremony. */
+#screen-badge {
+  border-radius: var(--radius);
+  padding: 24px 16px;
+}
+.badge-theme-shallows {
+  background: linear-gradient(160deg, #ffd977, #ffb45e 55%, #a5e3ee);
+  color: #693b37;
+}
+.badge-theme-twilight {
+  background: linear-gradient(160deg, var(--zone-twilight-a), var(--zone-twilight-b) 70%, #241f52);
+  color: var(--zone-twilight-ink);
+}
+.badge-theme-abyss {
+  background: linear-gradient(160deg, #241a38, var(--zone-abyss-b));
+  color: var(--zone-abyss-ink);
+}
+.badge-theme-atlantis {
+  background: linear-gradient(160deg, var(--zone-atlantis-a), var(--zone-atlantis-b));
+  color: var(--zone-atlantis-ink);
+}
+.badge-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+/* Bigger burst than any per-lesson celebration — this is the 10-lesson
+   payoff moment. */
+.badge-emoji {
+  font-size: 110px;
+  line-height: 1;
+  animation: badge-burst .9s cubic-bezier(.34, 1.56, .64, 1);
+  filter: drop-shadow(0 0 18px rgba(255, 235, 160, 0.85));
+}
+.badge-title { margin: 0; font-size: 30px; font-weight: 600; }
+.badge-subtitle { margin: 0; font-size: 17px; opacity: 0.85; }
+@keyframes badge-burst {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  55% { transform: scale(1.35) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); }
+}
+/* Unlock teaser (appears after the 4s badge beat): the next zone's divider
+   replica sheds its 🔒 (shatter) and wakes from locked dimming to full
+   color; the Continue button fades in last so the moment lands first. */
+.badge-teaser,
+.badge-finale {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 320px;
+  animation: fade-up .5s ease both;
+}
+.badge-teaser[hidden],
+.badge-finale[hidden] { display: none; }
+.badge-teaser-bar { width: 100%; }
+.badge-teaser-bar .zone-divider { transition: opacity .8s ease, filter .8s ease; }
+.badge-teaser-bar .zone-locked.zone-waking { opacity: 1; filter: saturate(1); }
+.zone-lock.lock-shatter { animation: lock-shatter .55s ease forwards; }
+@keyframes lock-shatter {
+  0% { transform: scale(1) rotate(0); opacity: 1; }
+  40% { transform: scale(1.35) rotate(-14deg); }
+  100% { transform: scale(2.4) rotate(18deg); opacity: 0; filter: blur(3px); }
+}
+.badge-teaser-text { margin: 0; font-size: 22px; font-weight: 600; animation: fade-up .6s ease .6s both; }
+.badge-continue { animation: fade-up .5s ease 1.6s both; }
+/* The two-way choice closing the ceremony: replay the zone or move on. */
+.badge-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Final-zone parade: every unlocked friend crosses the strip, staggered by
+   main.js via animation-delay. left animates in parent-relative %, so the
+   walk spans the strip on any width. */
+.badge-parade {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  overflow: hidden;
+}
+.parade-animal {
+  position: absolute;
+  left: -15%;
+  top: 0;
+  font-size: 44px;
+  line-height: 1;
+  animation: parade-walk 5.5s linear infinite both;
+}
+@keyframes parade-walk {
+  from { left: -15%; }
+  to { left: 110%; }
+}
+
+/* ---------- complete screen + leaderboard ---------- */
+.complete-actions {
+  display: flex;
+  gap: 12px;
+}
+/* Efficiency stars: only earned ones shown, no hollow "missing" slots. */
+.stars {
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: 6px;
+  animation: pop .35s ease;
+}
+.stars[hidden] { display: none; }
+.stats-badge {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  background: var(--card);
+  border-radius: 999px;
+  padding: 8px 20px;
+  box-shadow: var(--shadow);
+}
+.stats-badge[hidden] { display: none; }
+
+/* ---------- reward chest ---------- */
+/* Bounces IN when the screen appears, keeps a gentle idle bounce, and on
+   tap pops open (scale-up wiggle + fade) before the reveal takes over. */
+.reward-chest {
+  font-size: 96px;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  animation:
+    chest-in .55s cubic-bezier(.34, 1.56, .64, 1),
+    chest-bounce 1.1s ease .6s infinite;
+}
+.reward-chest.opening { animation: chest-open .45s ease forwards; }
+.reward-chest[hidden] { display: none; }
+.reward-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: pop .4s ease;
+}
+.reward-reveal[hidden] { display: none; }
+/* Big payoff text — the reveal is the headline moment, not fine print. */
+.reward-animal { margin: 0; font-size: 30px; font-weight: 600; }
+@keyframes chest-in {
+  0% { transform: scale(0) rotate(-25deg); }
+  60% { transform: scale(1.15) rotate(6deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes chest-bounce {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-14px) rotate(-4deg); }
+}
+@keyframes chest-open {
+  0% { transform: scale(1) rotate(0); opacity: 1; }
+  30% { transform: scale(1.15) rotate(-10deg); }
+  60% { transform: scale(1.3) rotate(10deg); }
+  100% { transform: scale(1.7) rotate(0); opacity: 0; }
+}
+
+/* ---------- confetti ---------- */
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 8;
+}
+.confetti-piece {
+  position: absolute;
+  top: -8%;
+  font-size: 20px;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(80vh) rotate(320deg); opacity: 0; }
+}
+.time-badge {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  background: var(--card);
+  border-radius: 999px;
+  padding: 8px 20px;
+  box-shadow: var(--shadow);
+}
+.best-badge {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--green);
+  border-radius: 999px;
+  padding: 8px 20px;
+  box-shadow: 0 4px 0 #37995f;
+  animation: pop .35s ease;
+}
+.time-badge[hidden], .best-badge[hidden] { display: none; }
+
+.lb-player { font-size: 22px; font-weight: 600; }
+.lb-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  width: 100%;
+  max-width: 340px;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.lb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 500;
+  text-align: left;
+}
+.lb-row:nth-child(even) { background: #f7f2e9; }
+.lb-row.lb-total { background: #eefaf2; color: #2d7d52; }
+.lb-time { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---------- toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  font-size: 18px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  z-index: 10;
+  animation: toast-in .25s ease;
+}
+@keyframes toast-in {
+  from { transform: translateX(-50%) scale(0.7); opacity: 0; }
+  to { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* ---------- animations ---------- */
+@keyframes pop {
+  0% { transform: scale(0.6); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+@keyframes bump {
+  0%, 100% { margin-left: 0; }
+  40% { margin-left: 8px; }
+  70% { margin-left: -4px; }
+}
+@keyframes party {
+  0%, 100% { transform: scale(1) rotate(0); }
+  50% { transform: scale(1.25) rotate(8deg); }
+}
+@keyframes jump-arc {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-55%) scale(1.15); }
+}
+@keyframes crumble {
+  0% { transform: scale(1) rotate(0); opacity: 1; }
+  40% { transform: scale(1.1) rotate(-8deg); }
+  100% { transform: scale(0.2) rotate(20deg); opacity: 0; }
+}
+@keyframes splash-hit {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+}
+/* Pickup burst: a sparkle punching out from the tile, gone in ~0.5s. */
+@keyframes collect-burst {
+  0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+  35% { transform: scale(1.35) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1.6) rotate(12deg); opacity: 0; }
+}
+/* The loot popup: "+1" rising off the tile and fading out. */
+@keyframes collect-plus {
+  0% { transform: translateY(10%) scale(0.7); opacity: 0; }
+  25% { transform: translateY(-15%) scale(1.1); opacity: 1; }
+  100% { transform: translateY(-90%) scale(1); opacity: 0; }
+}
+@keyframes collect-up {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-70%) scale(1.3); opacity: 0; }
+}
+
+/* Language picker sheet — opened by the 🌍 button on Learn cards. A dimmed
+   backdrop with a centered card panel; rows are built by main.js from
+   i18n.SUPPORTED. Tap the backdrop to close. */
+.lang-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60; /* above screens and the toast — nothing may cover the picker */
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.lang-sheet[hidden] { display: none; }
+.lang-panel {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px;
+  min-width: 250px;
+  max-height: 80vh; /* 11 languages already need to scroll on short phones */
+  overflow-y: auto;
+}
+.lang-list { display: flex; flex-direction: column; }
+.lang-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px; /* rows are full-width, comfortably past the 44px target */
+  cursor: pointer;
+  text-align: left;
+}
+.lang-row:active { background: rgba(105, 59, 55, 0.08); }
+.lang-label { font-weight: 600; min-width: 28px; }
+.lang-beta { font-size: 12px; opacity: 0.55; } /* provisional translation marker */
+.lang-check { margin-left: auto; }
+.lang-note {
+  font-size: 12px;
+  opacity: 0.65;
+  margin-top: 6px;
+  max-width: 250px;
+}
