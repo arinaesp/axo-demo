@@ -25,7 +25,7 @@ The demo instantiates ILLA's **two-phase architecture**, the core of the framewo
 
 Also demonstrated:
 
-- **Multilingual gloss support** — the 🌍 language picker offers supporting captions in 11 languages (English, Russian, Kyrgyz, Kazakh, Uzbek, Ukrainian, Spanish, French, Chinese, German, Italian). The target vocabulary stays in English; only the first-language gloss changes, reflecting the framework's use of L1 scaffolding for comprehensible input. Additional languages will be added in future updates.
+- **Multilingual gloss support** — the 🌍 language picker offers supporting captions in 11 languages (English, Kyrgyz, Kazakh, Uzbek, Ukrainian, Russian, Spanish, French, Chinese, German, Italian). The target vocabulary stays in English; only the first-language gloss changes, reflecting the framework's use of L1 scaffolding for comprehensible input. Additional languages will be added in future updates.
 - **Audio-first vocabulary** — each command and letter is voiced, supporting the literacy dimension directly.
 
 ## Scope and limitations
