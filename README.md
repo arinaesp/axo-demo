@@ -1,6 +1,6 @@
 # axo — Browser Demo
 
-A standalone, browser-based demo of **AXO**, a proof-of-concept digital game that helps young non-native English-speaking children (approximately ages 5–9) build foundational English literacy and foundational computational thinking *at the same time*, through interactive gameplay. This build is a self-contained slice of the full application, prepared as a research artifact accompanying a study introducing the **Integrated Language and Logic Acquisition (ILLA)** framework.
+A standalone, browser-based demo of **AXO**, a proof-of-concept digital game that helps young non-native English-speaking children (approximately ages 5–9) build foundational English literacy and foundational computational thinking _at the same time_, through interactive gameplay. This build is a self-contained slice of the full application, prepared as a research artifact accompanying a study introducing the **Integrated Language and Logic Acquisition (ILLA)** framework.
 
 Rather than treating English as a barrier that stands between a non-native child and learning to code, ILLA positions English as a functional tool the child uses to accomplish meaningful algorithmic tasks — so literacy and logic are acquired together rather than in sequence.
 
@@ -56,7 +56,7 @@ Vanilla JavaScript, HTML, and CSS — no frameworks, no build tooling. Audio is 
 
 This demo accompanies:
 
-> Arina Bolotbekova. *Integrated Language and Logic Acquisition (ILLA): Unifying English Literacy and Computational Thinking in Early Digital Game-Based Learning.* Independent Researcher, Bishkek, Kyrgyzstan, 2026.
+> Arina Bolotbekova. _Integrated Language and Logic Acquisition (ILLA): Unifying English Literacy and Computational Thinking in Early Digital Game-Based Learning._ Independent Researcher, Bishkek, Kyrgyzstan, July, 2026.
 
 **ILLA** is a conceptual and design-based pedagogical framework for teaching foundational English literacy and foundational computational thinking simultaneously to young non-native English-speaking children. It is grounded primarily in Task-Based Language Teaching (TBLT), with a digital extension of Total Physical Response ("d-TPR") as the moment-to-moment input–action feedback mechanism, and is further informed by Cognitive Load Theory, dual-coding and multimedia-learning principles, comprehensible input theory, and computational-thinking pedagogy. AXO is the framework's proof-of-concept artifact; this browser build lets readers experience its core learning loop directly.
 
