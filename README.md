@@ -60,9 +60,7 @@ This demo accompanies:
 
 **ILLA** is a conceptual and design-based pedagogical framework for teaching foundational English literacy and foundational computational thinking simultaneously to young non-native English-speaking children. It is grounded primarily in Task-Based Language Teaching (TBLT), with a digital extension of Total Physical Response ("d-TPR") as the moment-to-moment input–action feedback mechanism, and is further informed by Cognitive Load Theory, dual-coding and multimedia-learning principles, comprehensible input theory, and computational-thinking pedagogy. AXO is the framework's proof-of-concept artifact; this browser build lets readers experience its core learning loop directly.
 
-<!-- Once you mint a Zenodo DOI for this repo, add its badge here, e.g.:
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
--->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22008337.svg)](https://doi.org/10.5281/zenodo.22008337)
 
 ## License
 
